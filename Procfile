@@ -1,0 +1,1 @@
+web: gunicorn jarra.wsgi --log-file -
