@@ -1,0 +1,4 @@
+DATABASE_NAME=jarra
+DATABASE_USER=postgres
+DATABASE_PASSWORD=aftercode
+DATABASE_HOST=localhost
