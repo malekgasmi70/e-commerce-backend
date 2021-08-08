@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models.fields.related import ForeignKey
 
 # Create your models here.
 class Acheteur(models.Model):
@@ -49,11 +50,18 @@ class Product(models.Model):
     region = models.CharField(max_length=50)
     best_sell = models.BooleanField()
     disp_quantity = models.IntegerField()
-    vendeur = models.ForeignKey(Vendeur, on_delete=models.CASCADE, default=None)
+    category = models.ForeignKey(Category, related_name='product', on_delete=models.CASCADE, default=None)
+    vendeur = models.ForeignKey(Vendeur, related_name='vendeur', on_delete=models.CASCADE, default=None)
     image = models.ManyToManyField(ProdImage, null=True)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    
+
+    def remiseCal(self):
+        return self.initPrice - self.initPrice*self.remise
+
     def __str__(self):
         return self.name
+
+
 
 class Commande(models.Model):
     etat = models.CharField(max_length=50)

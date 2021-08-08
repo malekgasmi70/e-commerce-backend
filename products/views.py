@@ -1,12 +1,20 @@
 from django.http.response import Http404
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.response import Response
+from rest_framework.serializers import Serializer
 from products.serializers import *
 from products.models import Product
 from django.shortcuts import render
 from rest_framework.views import APIView
-from rest_framework import status
+from rest_framework import status, generics
+from rest_framework.decorators import api_view
+from rest_framework.permissions import IsAuthenticated 
 # Create your views here.
 
+
+class show(generics.ListCreateAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
 
 
 class ManageCategoryA(APIView):
@@ -27,35 +35,39 @@ class ManageCategoryA(APIView):
             serializer.data,
             status = status.HTTP_400_BAD_REQUEST
         )
+    authentication_classes = [TokenAuthentication]
+
 
 class ManageCategoryB(APIView):
-    def get_object(self, pk):
+    def get_object(self, slug):
         try:
-            return Category.objects.get(pk=pk)
+            return Category.objects.get(slug = slug)
         except Category.DoesNotExist:
             raise Http404
     
-    def get(self, request, pk):
-        category = self.get_object(pk)
+    def get(self, request, slug):
+        category = self.get_object(slug)
         serializer = CategorySerializer(category)
         return Response(serializer.data)
 
-    def put(self, request, pk):
-        category = self.get_object(pk)
+    def put(self, request, slug):
+        category = self.get_object(slug)
         serializer = CategorySerializer(category, data = request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
         
-    def delete(self, request, pk):
-        category = self.get_object(pk)
+    def delete(self, request, slug):
+        category = self.get_object(slug)
         category.delete()
         return Response(status = status.HTTP_204_NO_CONTENT)
 
 class ManageProductA(APIView):
     def get(self, request):
         products = Product.objects.all()
+        for i in range(len(products)):
+            products[i].remisePrice = products[i].remiseCal()
         serializer = ProductSerializer(products, many = True)
         return Response(serializer.data)
     
@@ -494,10 +506,17 @@ class ManageLivraisonB(APIView):
         return Response(status = status.HTTP_204_NO_CONTENT)
 
 
+@api_view(['GET'])
+def getBest(request):
+    if request.method == 'GET':
+        best_sells = Product.objects.filter(best_sell = True)
+        serializer = ProductSerializer(best_sells, many = True)
+        return Response(serializer.data)
 
 
-
-
+#class getCat(generics.ListeCreateAPIView):
+    #queryset = Category.objects.all()
+    #serializer_class = CategorySerializer
 
 
 

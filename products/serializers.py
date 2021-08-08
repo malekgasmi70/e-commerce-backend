@@ -16,15 +16,19 @@ class ProdImageSerializer(serializers.ModelSerializer):
         model = ProdImage
         fields = '__all__'
 
-class CategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Category
-        fields = '__all__'
 
 class ProductSerializer(serializers.ModelSerializer):
+    vendeur = VendeurSerializer(many = False, read_only = True)
+    image = ProdImageSerializer(many = True, read_only = True)
     class Meta:
         model = Product
         fields = '__all__'
+
+class CategorySerializer(serializers.ModelSerializer):
+    product = ProductSerializer(many = True, read_only=True)
+    class Meta:
+        model = Category
+        fields = ['name', 'slug', 'product']
 
 class CommandeSerializer(serializers.ModelSerializer):
     class Meta:

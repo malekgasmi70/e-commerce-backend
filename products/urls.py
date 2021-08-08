@@ -1,11 +1,13 @@
 from products import views
 from django.urls.conf import path
-
+from rest_framework.authtoken.views import obtain_auth_token
 
 
 urlpatterns = [
+    path('', views.getBest),
+
     path('categories/', views.ManageCategoryA.as_view()),
-    path('categories/<int:pk>', views.ManageCategoryB.as_view()),
+    path('categories/<str:slug>', views.ManageCategoryB.as_view()),
 
     path('products/', views.ManageProductA.as_view()),
     path('products/<int:pk>', views.ManageProductB.as_view()),
@@ -36,4 +38,6 @@ urlpatterns = [
 
     path('livraisons/', views.ManageLivraisonA.as_view()),
     path('livraisons/<int:pk>', views.ManageLivraisonB.as_view()),
+
+    path('api-auth-token', obtain_auth_token)
 ]
