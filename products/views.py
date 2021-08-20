@@ -141,7 +141,7 @@ class ManageCommandeB(APIView):
         return Response(serializer.data)
 
     def put(self, request, pk):
-        commande = self.get_object(pk)
+        commande = self.get_object(pk) 
         serializer = CommandeSerializer(commande, data = request.data)
         if serializer.is_valid():
             serializer.save()
@@ -513,6 +513,23 @@ def getBest(request):
         serializer = ProductSerializer(best_sells, many = True)
         return Response(serializer.data)
 
+@api_view(['POST',])
+def registration_vendeur_view(request):
+    if request.method == 'POST':
+        serializer = RegistrationVendeurSerializer(data = request.data)
+        data = {}
+        if serializer.is_valid():
+            user = serializer.save()
+            data['response'] = " successfully registred a new user."
+            data['email'] = user.email
+            data['username'] = user.username
+            data['isVendeur'] = user.isVendeur
+            vendeur = Vendeur(user=user)
+            vendeur.save()
+        else:
+            data = serializer.errors
+        return Response(data)   
+    
 
 #class getCat(generics.ListeCreateAPIView):
     #queryset = Category.objects.all()

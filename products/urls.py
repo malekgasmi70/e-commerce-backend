@@ -39,6 +39,8 @@ urlpatterns = [
     path('livraisons/', views.ManageLivraisonA.as_view()),
     path('livraisons/<int:pk>', views.ManageLivraisonB.as_view()),
 
+    path('register/', views.registration_vendeur_view),
+
     path('api-auth-token', obtain_auth_token)
 
 
