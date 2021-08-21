@@ -6,42 +6,81 @@ from rest_framework.authtoken.views import obtain_auth_token
 urlpatterns = [
     path('', views.getBest),
 
-    path('categories/', views.ManageCategoryA.as_view()),
-    path('categories/<str:slug>', views.ManageCategoryB.as_view()),
+    path('categories/', views.get_categories),
+    path('categories/create', views.post_category),
+    path('categories/<str:slug>', views.get_category),
+    path('categories/<str:slug>/update', views.put_category),
+    path('categories/<str:slug>/delete', views.delete_category),
 
-    path('products/', views.ManageProductA.as_view()),
-    path('products/<int:pk>', views.ManageProductB.as_view()),
+    path('products/', views.get_products),
+    path('products/create', views.post_product),
+    path('products/<str:slug>', views.get_product),
+    path('products/<str:slug>/update', views.put_product),
+    path('products/<str:slug>/delete', views.delete_product),
     
-    path('commandes/', views.ManageCommandeA.as_view()),
-    path('commandes/<int:pk>', views.ManageCommandeB.as_view()),
+    path('commandes/', views.get_commandes),
+    path('commandes/create', views.post_commande),
+    path('commandes/<str:slug>', views.get_commande),
+    path('commandes/<str:slug>/update', views.put_commande),
+    path('commandes/<str:slug>/delete', views.delete_commande),
 
-    path('acheteurs/', views.ManageAcheteurA.as_view()),
-    path('acheteurs/<int:pk', views.ManageAcheteurB.as_view()),
+    
+    path('acheteurs/', views.get_acheteurs),
+    path('acheteurs/create', views.post_acheteur),
+    path('acheteurs/<str:username>', views.get_acheteur),
+    path('acheteurs/<str:username>/update', views.put_acheteur),
+    path('acheteurs/<str:username>/delete', views.delete_acheteur),
 
-    path('vendeurs/', views.ManageVendeurA.as_view()),
-    path('vendeurs/<int:pk>', views.ManageVendeurB.as_view()),
+    path('vendeurs/', views.get_vendeurs),
+    path('vendeurs/create', views.post_vendeur),
+    path('vendeurs/<str:username>', views.get_vendeur),
+    path('vendeurs/<str:username>/update', views.put_vendeur),
+    path('vendeurs/<str:username>/delete', views.delete_vendeur),
 
-    path('prodimages/', views.ManageProdImageA.as_view()),
-    path('prodimages/<int:pk>', views.ManageProdImageB.as_view()),
+    
+    path('prodImages/', views.get_prodImages),
+    path('prodImages/create', views.post_prodImage),
+    path('prodImages/<int:pk>', views.get_prodImage),
+    path('prodImages/<int:pk>/update', views.put_prodImage),
+    path('prodImages/<int:pk>/delete', views.delete_prodImage),
 
-    path('commandelines/', views.ManageCommandeLineA.as_view()),
-    path('commandelines/<int:pk>', views.ManageCommandeLineB.as_view()),
+    
+    path('commandeLines/', views.get_commandeLines),
+    path('commandeLines/create', views.post_commandeLine),
+    path('commandeLines/<int:pk>', views.get_commandeLine),
+    path('commandeLines/<int:pk>/update', views.put_commandeLine),
+    path('commandeLines/<int:pk>/delete', views.delete_commandeLine),
 
-    path('paniers/', views.ManagePanierA.as_view()),
-    path('paniers/<int:pk>', views.ManagePanierB.as_view()),
+    
+    path('paniers/', views.get_paniers),
+    path('paniers/create', views.post_panier),
+    path('paniers/<int:pk>', views.get_panier),
+    path('paniers/<int:pk>/update', views.put_panier),
+    path('paniers/<int:pk>/delete', views.delete_panier),
 
-    path('favorites/', views.ManageFavoriteA.as_view()),
-    path('favorites/<int:pk>', views.ManageFavoriteB.as_view()),
+    
+    path('favorites/', views.get_favorites),
+    path('favorites/create', views.post_favorite),
+    path('favorites/<int:pk>', views.get_favorite),
+    path('favorites/<int:pk>/update', views.put_favorite),
+    path('favorites/<int:pk>/delete', views.delete_favorite),
 
-    path('comments/', views.ManageCommentA.as_view()),
-    path('comments/<int:pk>', views.ManageCommentB.as_view()),
+    
+    path('comments/', views.get_comments),
+    path('comments/create', views.post_comment),
+    path('comments/<int:pk>', views.get_comment),
+    path('comments/<int:pk>/update', views.put_comment),
+    path('comments/<int:pk>/delete', views.delete_comment),
 
-    path('livraisons/', views.ManageLivraisonA.as_view()),
-    path('livraisons/<int:pk>', views.ManageLivraisonB.as_view()),
+    
+    path('livraisons/', views.get_livraisons),
+    path('livraisons/create', views.post_livraison),
+    path('livraisons/<int:pk>', views.get_livraison),
+    path('livraisons/<int:pk>/update', views.put_livraison),
+    path('livraisons/<int:pk>/delete', views.delete_livraison),
 
     path('register/', views.registration_vendeur_view),
-
-    path('api-auth-token', obtain_auth_token)
+    path('login/', obtain_auth_token)
 
 
 ]

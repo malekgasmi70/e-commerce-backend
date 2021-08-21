@@ -11,19 +11,17 @@ from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated 
 # Create your views here.
 
-
-class show(generics.ListCreateAPIView):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-
-
-class ManageCategoryA(APIView):
-    def get(self, request):
+########################################### Category ##############################################
+api_view(['GET'])
+def get_categories(request):
+    if request.method == 'GET':
         categories = Category.objects.all()
         serializer = CategorySerializer(categories, many = True)
         return Response(serializer.data)
-    
-    def post(self, request):
+
+@api_view(['POST'])
+def post_category(request):
+    if request.method == 'POST':
         serializer = CategorySerializer(data = request.data)
         if serializer.is_valid():
             serializer.save()
@@ -35,87 +33,105 @@ class ManageCategoryA(APIView):
             serializer.data,
             status = status.HTTP_400_BAD_REQUEST
         )
-    authentication_classes = [TokenAuthentication]
 
-
-class ManageCategoryB(APIView):
-    def get_object(self, slug):
+@api_view(['GET'])
+def get_category(request, slug):
+    if request.method == 'GET':
         try:
-            return Category.objects.get(slug = slug)
+            category = Category.objects.get(slug=slug)
         except Category.DoesNotExist:
             raise Http404
-    
-    def get(self, request, slug):
-        category = self.get_object(slug)
         serializer = CategorySerializer(category)
         return Response(serializer.data)
-
-    def put(self, request, slug):
-        category = self.get_object(slug)
+        
+@api_view(['PUT'])
+def put_category(request, slug):
+    if request.method == 'PUT':
+        try:
+            category = Category.objects.get(slug=slug)
+        except Category.DoesNotExist:
+            raise Http404
         serializer = CategorySerializer(category, data = request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-    def delete(self, request, slug):
-        category = self.get_object(slug)
+@api_view(['DELETE'])
+def delete_category(request, slug):
+    if request.method == 'DELETE':
+        try: 
+            category = Category.objects.get(slug=slug)
+        except Category.DoesNotExist:
+            raise Http404
         category.delete()
-        return Response(status = status.HTTP_204_NO_CONTENT)
+        return Response(status = status.HTTP_204_NO_CONTENT)    
+        
+##################################################### Product ####################################
 
-class ManageProductA(APIView):
-    def get(self, request):
+@api_view(['GET'])
+def get_products(request):
+    if request.method == 'GET':
         products = Product.objects.all()
         for i in range(len(products)):
             products[i].remisePrice = products[i].remiseCal()
         serializer = ProductSerializer(products, many = True)
         return Response(serializer.data)
-    
-    def post(self, request):
-        serializer = ProductSerializer(data = request.data)
+
+@api_view(['POST'])
+def post_product(request):
+    if request.method == 'POST':
+        serializer = ProductSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(
-                serializer.data,
-                status = status.HTTP_201_CREATED
-            )
-        return Response(
-            serializer.data,
-            status = status.HTTP_400_BAD_REQUEST
-        )
+            return Response(serializer.data, status = status.HTTP_201_CREATED)
+        return Response(serializer.data, status.HTTP_400_BAD_REQUEST)
 
-class ManageProductB(APIView):
-    def get_object(self, pk):
+@api_view(['GET'])
+def get_product(request, slug):
+    if request.method == 'GET':
         try:
-            return Product.objects.get(pk=pk)
-        except Product.DoesNotExist: 
+            product = Product.objects.get(slug = slug)
+        except Product.DoesNotExist:
             raise Http404
-    
-    def get(self,request, pk):
-        product = self.get_object(pk)
-        serializer = ProductSerializer(product)
-        return Response(serializer.data)
-    
-    def put(self, request, pk):
-        product = self.get_object(pk)
-        serializer = ProductSerializer(product, data = request.data)
+        Serializer = ProductSerializer(product)
+        return Response(Serializer.data)
+
+@api_view(['PUT'])
+def put_product(request, slug):
+    if request.method == 'PUT':
+        try:
+            product = Product.objects.get(slug=slug)
+        except Product.DoesNotExist:
+            raise Http404
+        serializer = ProductSerializer(product, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
-    
-    def delete(self, request, pk):
-        product = self.get_object(pk)
-        product.delete()
-        return Response(status = status.HTTP_204_NO_CONTENT)
 
-class ManageCommandeA(APIView):
-    def get(self, request):
+@api_view(['DELETE'])
+def delete_product(request, slug):
+    if request.method == 'DELETE':
+        try:
+            product = Product.objects.get(slug=slug)
+        except Product.DoesNotExist:
+            raise Http404
+        product.delete()
+        return Response(status = status.HTTP_204_NO_CONTENT)    
+
+############################################################## Commande ###########################
+
+@api_view(['GET'])
+def get_commandes(request):
+    if request.method == 'GET':
         commandes = Commande.objects.all()
         serializer = CommandeSerializer(commandes, many = True)
         return Response(serializer.data)
 
-    def post(self, request):
+@api_view(['POST'])
+def post_commande(request):
+    if request.method == 'POST':
         serializer = CommandeSerializer(data = request.data)
         if serializer.is_valid():
             serializer.save()
@@ -128,383 +144,448 @@ class ManageCommandeA(APIView):
             status = status.HTTP_400_BAD_REQUEST
         )
 
-class ManageCommandeB(APIView):
-    def get_object(self, pk):
+@api_view(['GET'])
+def get_commande(request, pk):
+    if request.method == 'GET':
         try:
-            return Commande.objects.get(pk = pk)
+            commande = Commande.objects.get(pk=pk)
         except Commande.DoesNotExist:
             raise Http404
-    
-    def get(self, request, pk):
-        commande = self.get_object(pk)
         serializer = CommandeSerializer(commande)
         return Response(serializer.data)
 
-    def put(self, request, pk):
-        commande = self.get_object(pk) 
+@api_view(['PUT'])
+def put_commande(request, pk):
+    if request.method == 'PUT':
+        try:
+            commande = Commande.objects.get(pk=pk)
+        except Commande.DoesNotExist:
+            raise Http404
         serializer = CommandeSerializer(commande, data = request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
-    
-    def delete(self, request, pk):
-        commande = self.get_object(pk)
+
+@api_view(['DELETE'])
+def delete_commande(request, pk):
+    if request.method == 'DELETE':
+        try: 
+            commande = Commande.objects.get(pk=pk)
+        except Commande.DoesNotExist:
+            raise Http404
         commande.delete()
         return Response(status = status.HTTP_204_NO_CONTENT)
+        
+######################################################### Acheteur ################################
 
-class ManageAcheteurA(APIView):
-    def get(self, request):
+@api_view(['GET'])
+def get_acheteurs(request):
+    if request.method == 'GET':
         acheteurs = Acheteur.objects.all()
         serializer = AcheteurSerializer(acheteurs, many = True)
         return Response(serializer.data)
-    
-    def post(self, request):
-        serializer = AcheteurSerializer(data = request.data)
+
+@api_view(['POST'])
+def post_acheteur(request):
+    if request.method == 'POST':
+        serializer = AcheteurSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(
-                serializer.data,
-                status = status.HTTP_201_CREATED
-            )
-        return Response(
-            serializer.data,
-            status = status.HTTP_400_BAD_REQUEST
-        )
+            return Response(serializer.data, status = status.HTTP_201_CREATED)
+        return Response(serializer.data, status.HTTP_400_BAD_REQUEST)
 
-class ManageAcheteurB(APIView):
-    def get_object(self, pk):
+@api_view(['GET'])
+def get_acheteur(request, username):
+    if request.method == 'GET':
         try:
-            return Acheteur.objects.get(pk=pk)
+            acheteur = Acheteur.objects.get(username=username)
         except Acheteur.DoesNotExist:
             raise Http404
-    
-    def get(self, request, pk):
-        acheteur = self.get_object(pk)
-        serializer = AcheteurSerializer(acheteur)
-        return Response(serializer.data)
+        Serializer = AcheteurSerializer(acheteur)
+        return Response(Serializer.data)
 
-    def put(self, request, pk):
-        acheteur = self.get_object(pk)
-        serializer = AcheteurSerializer(acheteur, data = request.data)
+@api_view(['PUT'])
+def put_acheteur(request, username):
+    if request.method == 'PUT':
+        try:
+            acheteur = Acheteur.objects.get(username=username)
+        except Acheteur.DoesNotExist:
+            raise Http404
+        serializer = AcheteurSerializer(acheteur, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
-        
-    def delete(self, request, pk):
-        acheteur = self.get_object(pk)
-        acheteur.delete()
-        return Response(status = status.HTTP_204_NO_CONTENT)
 
-class ManageVendeurA(APIView):
-    def get(self, request):
+@api_view(['DELETE'])
+def delete_acheteur(request, username):
+    if request.method == 'DELETE':
+        try:
+            acheteur = Acheteur.objects.get(username=username)
+        except Acheteur.DoesNotExist:
+            raise Http404
+        acheteur.delete()
+        return Response(status = status.HTTP_204_NO_CONTENT)  
+
+########################################################### Vendeur ##############################
+
+@api_view(['GET'])
+def get_vendeurs(request):
+    if request.method == 'GET':
         vendeurs = Vendeur.objects.all()
         serializer = VendeurSerializer(vendeurs, many = True)
         return Response(serializer.data)
-    
-    def post(self, request):
-        serializer = VendeurSerializer(data = request.data)
+
+@api_view(['POST'])
+def post_vendeur(request):
+    if request.method == 'POST':
+        serializer = VendeurSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(
-                serializer.data,
-                status = status.HTTP_201_CREATED
-            )
-        return Response(
-            serializer.data,
-            status = status.HTTP_400_BAD_REQUEST
-        )
+            return Response(serializer.data, status = status.HTTP_201_CREATED)
+        return Response(serializer.data, status.HTTP_400_BAD_REQUEST)
 
-class ManageVendeurB(APIView):
-    def get_object(self, pk):
+@api_view(['GET'])
+def get_vendeur(request, username):
+    if request.method == 'GET':
         try:
-            return Vendeur.objects.get(pk=pk)
+            vendeur = Vendeur.objects.get(username=username)
         except Vendeur.DoesNotExist:
             raise Http404
-    
-    def get(self, request, pk):
-        vendeur = self.get_object(pk)
-        serializer = VendeurSerializer(vendeur)
-        return Response(serializer.data)
+        Serializer = VendeurSerializer(vendeur)
+        return Response(Serializer.data)
 
-    def put(self, request, pk):
-        vendeur = self.get_object(pk)
-        serializer = VendeurSerializer(vendeur, data = request.data)
+@api_view(['PUT'])
+def put_vendeur(request, username):
+    if request.method == 'PUT':
+        try:
+            vendeur = Vendeur.objects.get(username=username)
+        except Vendeur.DoesNotExist:
+            raise Http404
+        serializer = VendeurSerializer(vendeur, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
-        
-    def delete(self, request, pk):
-        vendeur = self.get_object(pk)
-        Vendeur.delete()
-        return Response(status = status.HTTP_204_NO_CONTENT)
 
-class ManageProdImageA(APIView):
-    def get(self, request):
+@api_view(['DELETE'])
+def delete_vendeur(request, username):
+    if request.method == 'DELETE':
+        try:
+            vendeur = Vendeur.objects.get(username=username)
+        except Vendeur.DoesNotExist:
+            raise Http404
+        vendeur.delete()
+        return Response(status = status.HTTP_204_NO_CONTENT)  
+
+##################################################### ProdImage ####################################
+
+@api_view(['GET'])
+def get_prodImages(request):
+    if request.method == 'GET':
         prodImages = ProdImage.objects.all()
         serializer = ProdImageSerializer(prodImages, many = True)
         return Response(serializer.data)
-    
-    def post(self, request):
-        serializer = ProdImageSerializer(data = request.data)
+
+@api_view(['POST'])
+def post_prodImage(request):
+    if request.method == 'POST':
+        serializer = ProdImageSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(
-                serializer.data,
-                status = status.HTTP_201_CREATED
-            )
-        return Response(
-            serializer.data,
-            status = status.HTTP_400_BAD_REQUEST
-        )
+            return Response(serializer.data, status = status.HTTP_201_CREATED)
+        return Response(serializer.data, status.HTTP_400_BAD_REQUEST)
 
-class ManageProdImageB(APIView):
-    def get_object(self, pk):
+@api_view(['GET'])
+def get_prodImage(request, pk):
+    if request.method == 'GET':
         try:
-            return ProdImage.objects.get(pk=pk)
+            prodImage = ProdImage.objects.get(pk=pk)
         except ProdImage.DoesNotExist:
             raise Http404
-    
-    def get(self, request, pk):
-        prodImage = self.get_object(pk)
-        serializer = ProdImageSerializer(prodImage)
-        return Response(serializer.data)
+        Serializer = ProdImageSerializer(prodImage)
+        return Response(Serializer.data)
 
-    def put(self, request, pk):
-        prodImage = self.get_object(pk)
-        serializer = ProdImageSerializer(prodImage, data = request.data)
+@api_view(['PUT'])
+def put_prodImage(request, pk):
+    if request.method == 'PUT':
+        try:
+            prodImage = ProdImage.objects.get(pk=pk)
+        except ProdImage.DoesNotExist:
+            raise Http404
+        serializer = ProdImageSerializer(prodImage, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
-        
-    def delete(self, request, pk):
-        prodImage = self.get_object(pk)
-        prodImage.delete()
-        return Response(status = status.HTTP_204_NO_CONTENT)
 
-class ManageCommandeLineA(APIView):
-    def get(self, request):
+@api_view(['DELETE'])
+def delete_prodImage(request, pk):
+    if request.method == 'DELETE':
+        try:
+            prodImage = ProdImage.objects.get(pk=pk)
+        except ProdImage.DoesNotExist:
+            raise Http404
+        prodImage.delete()
+        return Response(status = status.HTTP_204_NO_CONTENT)  
+
+################################################### CommandeLine ######################################
+
+@api_view(['GET'])
+def get_commandeLines(request):
+    if request.method == 'GET':
         commandeLines = CommandeLine.objects.all()
         serializer = CommandeLineSerializer(commandeLines, many = True)
         return Response(serializer.data)
-    
-    def post(self, request):
-        serializer = CommandeLineSerializer(data = request.data)
+
+@api_view(['POST'])
+def post_commandeLine(request):
+    if request.method == 'POST':
+        serializer = CommandeLineSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(
-                serializer.data,
-                status = status.HTTP_201_CREATED
-            )
-        return Response(
-            serializer.data,
-            status = status.HTTP_400_BAD_REQUEST
-        )
+            return Response(serializer.data, status = status.HTTP_201_CREATED)
+        return Response(serializer.data, status.HTTP_400_BAD_REQUEST)
 
-class ManageCommandeLineB(APIView):
-    def get_object(self, pk):
+@api_view(['GET'])
+def get_commandeLine(request, pk):
+    if request.method == 'GET':
         try:
-            return CommandeLine.objects.get(pk=pk)
+            commandeLine = CommandeLine.objects.get(pk=pk)
         except CommandeLine.DoesNotExist:
             raise Http404
-    
-    def get(self, request, pk):
-        commandeLine = self.get_object(pk)
-        serializer = CommandeLineSerializer(commandeLine)
-        return Response(serializer.data)
+        Serializer = CommandeLineSerializer(commandeLine)
+        return Response(Serializer.data)
 
-    def put(self, request, pk):
-        commandeLine = self.get_object(pk)
-        serializer = CommandeLineSerializer(commandeLine, data = request.data)
+@api_view(['PUT'])
+def put_commandeLine(request, pk):
+    if request.method == 'PUT':
+        try:
+            commandeLine = CommandeLine.objects.get(pk=pk)
+        except CommandeLine.DoesNotExist:
+            raise Http404
+        serializer = CommandeLineSerializer(commandeLine, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
-        
-    def delete(self, request, pk):
-        commandeLine = self.get_object(pk)
-        commandeLine.delete()
-        return Response(status = status.HTTP_204_NO_CONTENT)
 
-class ManagePanierA(APIView):
-    def get(self, request):
+@api_view(['DELETE'])
+def delete_commandeLine(request, pk):
+    if request.method == 'DELETE':
+        try:
+            commandeLine = CommandeLine.objects.get(pk=pk)
+        except CommandeLine.DoesNotExist:
+            raise Http404
+        commandeLine.delete()
+        return Response(status = status.HTTP_204_NO_CONTENT)  
+
+############################################### Panier ##########################################
+
+@api_view(['GET'])
+def get_paniers(request):
+    if request.method == 'GET':
         paniers = Panier.objects.all()
         serializer = PanierSerializer(paniers, many = True)
         return Response(serializer.data)
-    
-    def post(self, request):
-        serializer = PanierSerializer(data = request.data)
+
+@api_view(['POST'])
+def post_panier(request):
+    if request.method == 'POST':
+        serializer = PanierSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(
-                serializer.data,
-                status = status.HTTP_201_CREATED
-            )
-        return Response(
-            serializer.data,
-            status = status.HTTP_400_BAD_REQUEST
-        )
+            return Response(serializer.data, status = status.HTTP_201_CREATED)
+        return Response(serializer.data, status.HTTP_400_BAD_REQUEST)
 
-class ManagePanierB(APIView):
-    def get_object(self, pk):
+@api_view(['GET'])
+def get_panier(request, pk):
+    if request.method == 'GET':
         try:
-            return Panier.objects.get(pk=pk)
+            panier = Panier.objects.get(pk=pk)
         except Panier.DoesNotExist:
             raise Http404
-    
-    def get(self, request, pk):
-        panier = self.get_object(pk)
-        serializer = PanierSerializer(panier)
-        return Response(serializer.data)
+        Serializer = PanierSerializer(panier)
+        return Response(Serializer.data)
 
-    def put(self, request, pk):
-        panier = self.get_object(pk)
-        serializer = PanierSerializer(panier, data = request.data)
+@api_view(['PUT'])
+def put_panier(request, pk):
+    if request.method == 'PUT':
+        try:
+            panier = Panier.objects.get(pk=pk)
+        except Panier.DoesNotExist:
+            raise Http404
+        serializer = PanierSerializer(panier, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
-        
-    def delete(self, request, pk):
-        panier = self.get_object(pk)
-        panier.delete()
-        return Response(status = status.HTTP_204_NO_CONTENT)
 
-class ManageFavoriteA(APIView):
-    def get(self, request):
+@api_view(['DELETE'])
+def delete_panier(request, pk):
+    if request.method == 'DELETE':
+        try:
+            panier = Panier.objects.get(pk=pk)
+        except Panier.DoesNotExist:
+            raise Http404
+        panier.delete()
+        return Response(status = status.HTTP_204_NO_CONTENT)  
+
+############################################### Favorite ##########################################
+
+@api_view(['GET'])
+def get_favorites(request):
+    if request.method == 'GET':
         favorites = Favorite.objects.all()
         serializer = FavoriteSerializer(favorites, many = True)
         return Response(serializer.data)
-    
-    def post(self, request):
-        serializer = FavoriteSerializer(data = request.data)
+
+@api_view(['POST'])
+def post_favorite(request):
+    if request.method == 'POST':
+        serializer = FavoriteSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(
-                serializer.data,
-                status = status.HTTP_201_CREATED
-            )
-        return Response(
-            serializer.data,
-            status = status.HTTP_400_BAD_REQUEST
-        )
+            return Response(serializer.data, status = status.HTTP_201_CREATED)
+        return Response(serializer.data, status.HTTP_400_BAD_REQUEST)
 
-class ManageFavoriteB(APIView):
-    def get_object(self, pk):
+@api_view(['GET'])
+def get_favorite(request, pk):
+    if request.method == 'GET':
         try:
-            return Favorite.objects.get(pk=pk)
+            favorite = Favorite.objects.get(pk=pk)
         except Favorite.DoesNotExist:
             raise Http404
-    
-    def get(self, request, pk):
-        favorite = self.get_object(pk)
-        serializer = FavoriteSerializer(favorite)
-        return Response(serializer.data)
+        Serializer = FavoriteSerializer(favorite)
+        return Response(Serializer.data)
 
-    def put(self, request, pk):
-        favorite = self.get_object(pk)
-        serializer = FavoriteSerializer(favorite, data = request.data)
+@api_view(['PUT'])
+def put_favorite(request, pk):
+    if request.method == 'PUT':
+        try:
+            favorite = Favorite.objects.get(pk=pk)
+        except Favorite.DoesNotExist:
+            raise Http404
+        serializer = FavoriteSerializer(favorite, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
-        
-    def delete(self, request, pk):
-        favorite = self.get_object(pk)
-        favorite.delete()
-        return Response(status = status.HTTP_204_NO_CONTENT)
 
-class ManageCommentA(APIView):
-    def get(self, request):
+@api_view(['DELETE'])
+def delete_favorite(request, pk):
+    if request.method == 'DELETE':
+        try:
+            favorite = Favorite.objects.get(pk=pk)
+        except Favorite.DoesNotExist:
+            raise Http404
+        favorite.delete()
+        return Response(status = status.HTTP_204_NO_CONTENT) 
+
+################################################# Comment ########################################
+
+@api_view(['GET'])
+def get_comments(request):
+    if request.method == 'GET':
         comments = Comment.objects.all()
         serializer = CommentSerializer(comments, many = True)
         return Response(serializer.data)
-    
-    def post(self, request):
-        serializer = CommentSerializer(data = request.data)
+
+@api_view(['POST'])
+def post_comment(request):
+    if request.method == 'POST':
+        serializer = CommentSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(
-                serializer.data,
-                status = status.HTTP_201_CREATED
-            )
-        return Response(
-            serializer.data,
-            status = status.HTTP_400_BAD_REQUEST
-        )
+            return Response(serializer.data, status = status.HTTP_201_CREATED)
+        return Response(serializer.data, status.HTTP_400_BAD_REQUEST)
 
-class ManageCommentB(APIView):
-    def get_object(self, pk):
+@api_view(['GET'])
+def get_comment(request, pk):
+    if request.method == 'GET':
         try:
-            return Comment.objects.get(pk=pk)
+            comment = Comment.objects.get(pk=pk)
         except Comment.DoesNotExist:
             raise Http404
-    
-    def get(self, request, pk):
-        comment = self.get_object(pk)
-        serializer = CommentSerializer(comment)
-        return Response(serializer.data)
+        Serializer = CommentSerializer(comment)
+        return Response(Serializer.data)
 
-    def put(self, request, pk):
-        comment = self.get_object(pk)
-        serializer = CommentSerializer(comment, data = request.data)
+@api_view(['PUT'])
+def put_comment(request, pk):
+    if request.method == 'PUT':
+        try:
+            comment = Comment.objects.get(pk=pk)
+        except Comment.DoesNotExist:
+            raise Http404
+        serializer = CommentSerializer(comment, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
-        
-    def delete(self, request, pk):
-        comment = self.get_object(pk)
-        comment.delete()
-        return Response(status = status.HTTP_204_NO_CONTENT)
 
-class ManageLivraisonA(APIView):
-    def get(self, request):
+@api_view(['DELETE'])
+def delete_comment(request, pk):
+    if request.method == 'DELETE':
+        try:
+            comment = Comment.objects.get(pk=pk)
+        except Comment.DoesNotExist:
+            raise Http404
+        comment.delete()
+        return Response(status = status.HTTP_204_NO_CONTENT) 
+
+################################################ Livraison #########################################
+
+@api_view(['GET'])
+def get_livraisons(request):
+    if request.method == 'GET':
         livraisons = Livraison.objects.all()
         serializer = LivraisonSerializer(livraisons, many = True)
         return Response(serializer.data)
-    
-    def post(self, request):
-        serializer = LivraisonSerializer(data = request.data)
+
+@api_view(['POST'])
+def post_livraison(request):
+    if request.method == 'POST':
+        serializer = LivraisonSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(
-                serializer.data,
-                status = status.HTTP_201_CREATED
-            )
-        return Response(
-            serializer.data,
-            status = status.HTTP_400_BAD_REQUEST
-        )
+            return Response(serializer.data, status = status.HTTP_201_CREATED)
+        return Response(serializer.data, status.HTTP_400_BAD_REQUEST)
 
-class ManageLivraisonB(APIView):
-    def get_object(self, pk):
+@api_view(['GET'])
+def get_livraison(request, pk):
+    if request.method == 'GET':
         try:
-            return Livraison.objects.get(pk=pk)
+            livraison = Livraison.objects.get(pk=pk)
         except Livraison.DoesNotExist:
             raise Http404
-    
-    def get(self, request, pk):
-        livraison = self.get_object(pk)
-        serializer = LivraisonSerializer(livraison)
-        return Response(serializer.data)
+        Serializer = LivraisonSerializer(livraison)
+        return Response(Serializer.data)
 
-    def put(self, request, pk):
-        livraison = self.get_object(pk)
-        serializer = LivraisonSerializer(livraison, data = request.data)
+@api_view(['PUT'])
+def put_livraison(request, pk):
+    if request.method == 'PUT':
+        try:
+            livraison = Livraison.objects.get(pk=pk)
+        except Livraison.DoesNotExist:
+            raise Http404
+        serializer = LivraisonSerializer(livraison, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
-        
-    def delete(self, request, pk):
-        livraison = self.get_object(pk)
-        livraison.delete()
-        return Response(status = status.HTTP_204_NO_CONTENT)
 
+@api_view(['DELETE'])
+def delete_livraison(request, pk):
+    if request.method == 'DELETE':
+        try:
+            livraison = Livraison.objects.get(pk=pk)
+        except Livraison.DoesNotExist:
+            raise Http404
+        livraison.delete()
+        return Response(status = status.HTTP_204_NO_CONTENT) 
+
+################################################ BestSells #########################################
 
 @api_view(['GET'])
 def getBest(request):
@@ -513,10 +594,12 @@ def getBest(request):
         serializer = ProductSerializer(best_sells, many = True)
         return Response(serializer.data)
 
+############################################### Registration ##########################################
+
 @api_view(['POST',])
 def registration_vendeur_view(request):
     if request.method == 'POST':
-        serializer = RegistrationVendeurSerializer(data = request.data)
+        serializer = RegistrationSerializer(data = request.data)
         data = {}
         if serializer.is_valid():
             user = serializer.save()
@@ -524,13 +607,17 @@ def registration_vendeur_view(request):
             data['email'] = user.email
             data['username'] = user.username
             data['isVendeur'] = user.isVendeur
-            vendeur = Vendeur(user=user)
-            vendeur.save()
+            data['isAcheteur'] = user.isAcheteur
+            token = Token.objects.get(user=user).key
+            data['token']= token
+            if user.isVendeur == True:
+                vendeur = Vendeur(user=user)
+                vendeur.save()
+            elif user.isAcheteur == True:
+                acheteur = Acheteur(user = user)
+                acheteur.save()
         else:
             data = serializer.errors
         return Response(data)   
     
-
-#class getCat(generics.ListeCreateAPIView):
-    #queryset = Category.objects.all()
-    #serializer_class = CategorySerializer
+################################################# End. ########################################
