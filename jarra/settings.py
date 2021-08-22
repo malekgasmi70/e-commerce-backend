@@ -51,6 +51,8 @@ INSTALLED_APPS = [
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES':
     ['rest_framework.authentication.TokenAuthentication'],
+    'DEFAULT_PERMESSION_CLASSES' : 
+    ['rest_framework.permessions.IsAuthencated']
 }
 
 MIDDLEWARE = [

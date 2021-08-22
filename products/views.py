@@ -7,12 +7,12 @@ from products.models import Product
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework import status, generics
-from rest_framework.decorators import api_view
-from rest_framework.permissions import IsAuthenticated 
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 # Create your views here.
 
 ########################################### Category ##############################################
-api_view(['GET'])
+@api_view(['GET'])
 def get_categories(request):
     if request.method == 'GET':
         categories = Category.objects.all()
@@ -20,9 +20,11 @@ def get_categories(request):
         return Response(serializer.data)
 
 @api_view(['POST'])
+@permission_classes([IsAdminUser, ])
 def post_category(request):
     if request.method == 'POST':
-        serializer = CategorySerializer(data = request.data)
+        serializer = CategoryWSerializer(data = request.data)
+        
         if serializer.is_valid():
             serializer.save()
             return Response(
@@ -45,8 +47,10 @@ def get_category(request, slug):
         return Response(serializer.data)
         
 @api_view(['PUT'])
+@permission_classes([IsAdminUser, ])
 def put_category(request, slug):
     if request.method == 'PUT':
+        user = request.user
         try:
             category = Category.objects.get(slug=slug)
         except Category.DoesNotExist:
@@ -58,6 +62,7 @@ def put_category(request, slug):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
 @api_view(['DELETE'])
+@permission_classes([IsAdminUser, ])
 def delete_category(request, slug):
     if request.method == 'DELETE':
         try: 
@@ -79,13 +84,14 @@ def get_products(request):
         return Response(serializer.data)
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated, ])
 def post_product(request):
     if request.method == 'POST':
-        serializer = ProductSerializer(data=request.data)
+        serializer = ProductWSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status = status.HTTP_201_CREATED)
-        return Response(serializer.data, status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
 def get_product(request, slug):
@@ -98,41 +104,57 @@ def get_product(request, slug):
         return Response(Serializer.data)
 
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated, ])
 def put_product(request, slug):
     if request.method == 'PUT':
         try:
             product = Product.objects.get(slug=slug)
         except Product.DoesNotExist:
             raise Http404
-        serializer = ProductSerializer(product, data=request.data)
+        user = request.user
+        if product.vendeur.user != user:
+            return Response({"response" : "You don't have permission to edit that. "})
+        serializer = ProductWSerializer(product, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
 
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated, ])
 def delete_product(request, slug):
     if request.method == 'DELETE':
         try:
             product = Product.objects.get(slug=slug)
         except Product.DoesNotExist:
             raise Http404
+        user = request.user
+        if product.vendeur.user != user:
+            return Response({"response" : "You don't have permission to edit that. "})
         product.delete()
         return Response(status = status.HTTP_204_NO_CONTENT)    
 
 ############################################################## Commande ###########################
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def get_commandes(request):
     if request.method == 'GET':
         commandes = Commande.objects.all()
-        serializer = CommandeSerializer(commandes, many = True)
+        user = request.user
+        specialCommandes = {}
+        for commande in commandes:
+            if commande.acheteur.user == user:
+                specialCommandes.append(commande)
+
+        serializer = CommandeSerializer(specialCommandes, many = True)
         return Response(serializer.data)
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def post_commande(request):
     if request.method == 'POST':
-        serializer = CommandeSerializer(data = request.data)
+        serializer = CommandeWSerializer(data = request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(
@@ -145,6 +167,7 @@ def post_commande(request):
         )
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated, ])
 def get_commande(request, pk):
     if request.method == 'GET':
         try:
@@ -155,19 +178,21 @@ def get_commande(request, pk):
         return Response(serializer.data)
 
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated, ])
 def put_commande(request, pk):
     if request.method == 'PUT':
         try:
             commande = Commande.objects.get(pk=pk)
         except Commande.DoesNotExist:
             raise Http404
-        serializer = CommandeSerializer(commande, data = request.data)
+        serializer = CommandeWSerializer(commande, data = request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
 
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated, ])
 def delete_commande(request, pk):
     if request.method == 'DELETE':
         try: 
@@ -180,6 +205,7 @@ def delete_commande(request, pk):
 ######################################################### Acheteur ################################
 
 @api_view(['GET'])
+@permission_classes([IsAdminUser, ])
 def get_acheteurs(request):
     if request.method == 'GET':
         acheteurs = Acheteur.objects.all()
@@ -187,15 +213,17 @@ def get_acheteurs(request):
         return Response(serializer.data)
 
 @api_view(['POST'])
+@permission_classes([IsAdminUser, ])
 def post_acheteur(request):
     if request.method == 'POST':
-        serializer = AcheteurSerializer(data=request.data)
+        serializer = AcheteurWSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status = status.HTTP_201_CREATED)
         return Response(serializer.data, status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
+@permission_classes([IsAdminUser, ])
 def get_acheteur(request, username):
     if request.method == 'GET':
         try:
@@ -206,19 +234,21 @@ def get_acheteur(request, username):
         return Response(Serializer.data)
 
 @api_view(['PUT'])
+@permission_classes([IsAdminUser, ])
 def put_acheteur(request, username):
     if request.method == 'PUT':
         try:
             acheteur = Acheteur.objects.get(username=username)
         except Acheteur.DoesNotExist:
             raise Http404
-        serializer = AcheteurSerializer(acheteur, data=request.data)
+        serializer = AcheteurWSerializer(acheteur, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
 
 @api_view(['DELETE'])
+@permission_classes([IsAdminUser, ])
 def delete_acheteur(request, username):
     if request.method == 'DELETE':
         try:
@@ -231,6 +261,7 @@ def delete_acheteur(request, username):
 ########################################################### Vendeur ##############################
 
 @api_view(['GET'])
+@permission_classes([IsAdminUser, ])
 def get_vendeurs(request):
     if request.method == 'GET':
         vendeurs = Vendeur.objects.all()
@@ -238,15 +269,17 @@ def get_vendeurs(request):
         return Response(serializer.data)
 
 @api_view(['POST'])
+@permission_classes([IsAdminUser, ])
 def post_vendeur(request):
     if request.method == 'POST':
-        serializer = VendeurSerializer(data=request.data)
+        serializer = VendeurWSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status = status.HTTP_201_CREATED)
         return Response(serializer.data, status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
+@permission_classes([IsAdminUser, ])
 def get_vendeur(request, username):
     if request.method == 'GET':
         try:
@@ -257,19 +290,21 @@ def get_vendeur(request, username):
         return Response(Serializer.data)
 
 @api_view(['PUT'])
+@permission_classes([IsAdminUser, ])
 def put_vendeur(request, username):
     if request.method == 'PUT':
         try:
             vendeur = Vendeur.objects.get(username=username)
         except Vendeur.DoesNotExist:
             raise Http404
-        serializer = VendeurSerializer(vendeur, data=request.data)
+        serializer = VendeurWSerializer(vendeur, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
 
 @api_view(['DELETE'])
+@permission_classes([IsAdminUser, ])
 def delete_vendeur(request, username):
     if request.method == 'DELETE':
         try:
@@ -289,6 +324,7 @@ def get_prodImages(request):
         return Response(serializer.data)
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated, ])
 def post_prodImage(request):
     if request.method == 'POST':
         serializer = ProdImageSerializer(data=request.data)
@@ -308,6 +344,7 @@ def get_prodImage(request, pk):
         return Response(Serializer.data)
 
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated, ])
 def put_prodImage(request, pk):
     if request.method == 'PUT':
         try:
@@ -321,6 +358,7 @@ def put_prodImage(request, pk):
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
 
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated, ])
 def delete_prodImage(request, pk):
     if request.method == 'DELETE':
         try:
@@ -340,6 +378,7 @@ def get_commandeLines(request):
         return Response(serializer.data)
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated, ])
 def post_commandeLine(request):
     if request.method == 'POST':
         serializer = CommandeLineSerializer(data=request.data)
@@ -359,6 +398,7 @@ def get_commandeLine(request, pk):
         return Response(Serializer.data)
 
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated, ])
 def put_commandeLine(request, pk):
     if request.method == 'PUT':
         try:
@@ -372,6 +412,7 @@ def put_commandeLine(request, pk):
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
 
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated, ])
 def delete_commandeLine(request, pk):
     if request.method == 'DELETE':
         try:
@@ -384,6 +425,7 @@ def delete_commandeLine(request, pk):
 ############################################### Panier ##########################################
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated, ])
 def get_paniers(request):
     if request.method == 'GET':
         paniers = Panier.objects.all()
@@ -391,6 +433,7 @@ def get_paniers(request):
         return Response(serializer.data)
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated, ])
 def post_panier(request):
     if request.method == 'POST':
         serializer = PanierSerializer(data=request.data)
@@ -400,6 +443,7 @@ def post_panier(request):
         return Response(serializer.data, status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated, ])
 def get_panier(request, pk):
     if request.method == 'GET':
         try:
@@ -410,6 +454,7 @@ def get_panier(request, pk):
         return Response(Serializer.data)
 
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated, ])
 def put_panier(request, pk):
     if request.method == 'PUT':
         try:
@@ -423,6 +468,7 @@ def put_panier(request, pk):
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
 
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated, ])
 def delete_panier(request, pk):
     if request.method == 'DELETE':
         try:
@@ -435,6 +481,7 @@ def delete_panier(request, pk):
 ############################################### Favorite ##########################################
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated, ])
 def get_favorites(request):
     if request.method == 'GET':
         favorites = Favorite.objects.all()
@@ -442,6 +489,7 @@ def get_favorites(request):
         return Response(serializer.data)
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated, ])
 def post_favorite(request):
     if request.method == 'POST':
         serializer = FavoriteSerializer(data=request.data)
@@ -451,6 +499,7 @@ def post_favorite(request):
         return Response(serializer.data, status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated, ])
 def get_favorite(request, pk):
     if request.method == 'GET':
         try:
@@ -461,6 +510,7 @@ def get_favorite(request, pk):
         return Response(Serializer.data)
 
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated, ])
 def put_favorite(request, pk):
     if request.method == 'PUT':
         try:
@@ -474,6 +524,7 @@ def put_favorite(request, pk):
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
 
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated, ])
 def delete_favorite(request, pk):
     if request.method == 'DELETE':
         try:
@@ -486,6 +537,7 @@ def delete_favorite(request, pk):
 ################################################# Comment ########################################
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated, ])
 def get_comments(request):
     if request.method == 'GET':
         comments = Comment.objects.all()
@@ -493,6 +545,7 @@ def get_comments(request):
         return Response(serializer.data)
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated, ])
 def post_comment(request):
     if request.method == 'POST':
         serializer = CommentSerializer(data=request.data)
@@ -502,6 +555,7 @@ def post_comment(request):
         return Response(serializer.data, status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated, ])
 def get_comment(request, pk):
     if request.method == 'GET':
         try:
@@ -512,6 +566,7 @@ def get_comment(request, pk):
         return Response(Serializer.data)
 
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated, ])
 def put_comment(request, pk):
     if request.method == 'PUT':
         try:
@@ -525,6 +580,7 @@ def put_comment(request, pk):
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
 
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated, ])
 def delete_comment(request, pk):
     if request.method == 'DELETE':
         try:
@@ -537,6 +593,7 @@ def delete_comment(request, pk):
 ################################################ Livraison #########################################
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated, ])
 def get_livraisons(request):
     if request.method == 'GET':
         livraisons = Livraison.objects.all()
@@ -544,6 +601,7 @@ def get_livraisons(request):
         return Response(serializer.data)
 
 @api_view(['POST'])
+@permission_classes([IsAuthenticated, ])
 def post_livraison(request):
     if request.method == 'POST':
         serializer = LivraisonSerializer(data=request.data)
@@ -553,6 +611,7 @@ def post_livraison(request):
         return Response(serializer.data, status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated, ])
 def get_livraison(request, pk):
     if request.method == 'GET':
         try:
@@ -563,6 +622,7 @@ def get_livraison(request, pk):
         return Response(Serializer.data)
 
 @api_view(['PUT'])
+@permission_classes([IsAuthenticated, ])
 def put_livraison(request, pk):
     if request.method == 'PUT':
         try:
@@ -576,6 +636,7 @@ def put_livraison(request, pk):
         return Response(serializer.errors, status = status.HTTP_400_BAD_REQUEST)
 
 @api_view(['DELETE'])
+@permission_classes([IsAuthenticated, ])
 def delete_livraison(request, pk):
     if request.method == 'DELETE':
         try:

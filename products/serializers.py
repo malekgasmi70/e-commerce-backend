@@ -12,8 +12,20 @@ class AcheteurSerializer(serializers.ModelSerializer):
         model = Acheteur
         fields = '__all__'
 
+class AcheteurWSerializer(serializers.ModelSerializer):
+    #user = UserSerializer(many = False, read_only=True)
+    class Meta:
+        model = Acheteur
+        fields = '__all__'
+
 class VendeurSerializer(serializers.ModelSerializer):
     user = UserSerializer(many = False, read_only = True)
+    class Meta:
+        model = Vendeur
+        fields = '__all__'
+
+class VendeurWSerializer(serializers.ModelSerializer):
+    #user = UserSerializer(many = False, read_only = True)
     class Meta:
         model = Vendeur
         fields = '__all__'
@@ -56,14 +68,33 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = '__all__'
 
+class ProductWSerializer(serializers.ModelSerializer):
+    #vendeur = VendeurSerializer(many = False, read_only = True)
+    #image = ProdImageSerializer(many = True, read_only = True)
+    class Meta:
+        model = Product
+        fields = '__all__'
+
 class CategorySerializer(serializers.ModelSerializer):
     product = ProductSerializer(many = True, read_only=True)
     class Meta:
         model = Category
-        fields = ['name', 'slug', 'product']
+        fields = '__all__'
+
+class CategoryWSerializer(serializers.ModelSerializer):
+    #product = ProductSerializer(many = True, read_only=True)
+    class Meta:
+        model = Category
+        fields = '__all__'
 
 class CommandeSerializer(serializers.ModelSerializer):
     product = ProductSerializer(many = True, read_only = True)
+    class Meta:
+        model = Commande
+        fields = '__all__'
+
+class CommandeWSerializer(serializers.ModelSerializer):
+    #product = ProductSerializer(many = True, read_only = True)
     class Meta:
         model = Commande
         fields = '__all__'
